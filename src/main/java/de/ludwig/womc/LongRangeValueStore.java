@@ -1,4 +1,4 @@
-package com.dpdhl.vls.ebay.txgroup.dat;
+package de.ludwig.womc;
 
 public class LongRangeValueStore extends RangeValueStore<Long>
 {
