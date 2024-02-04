@@ -1,9 +1,19 @@
 package de.womc;
 
-import de.womc.Womc.WomcCtx;
 import de.womc.data.configurator.BeanDataConfig;
+import de.womc.data.configurator.FieldConfig;
+import de.womc.data.provider.IFieldDataProvider;
+import de.womc.data.provider.ProviderStore;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public final class WomcBuilder<C> {
+
+  // Actually not used but maybe required in case we want to create data for more than one type.
+  private Womc womc;
 
   Class<C> clazz;
 
@@ -11,17 +21,15 @@ public final class WomcBuilder<C> {
 
   private boolean initiateViaConstructor = false;
 
-  BeanDataConfig beanDataConfig;
-
-  private WomcCtx ctx;
+  private ProviderStore providerStore = new ProviderStore();
 
   private WomcBuilder() {
   }
 
-  public static <C> WomcBuilder<C> of(Class<C> clazz, WomcCtx ctx) {
+  public static <C> WomcBuilder<C> of(Class<C> clazz, Womc womc) {
     var builder = new WomcBuilder<C>();
     builder.clazz = clazz;
-    builder.ctx = ctx;
+    builder.womc = womc;
     return builder;
   }
 
@@ -35,27 +43,69 @@ public final class WomcBuilder<C> {
     return this;
   }
 
-  public Womc finish() {
-    return ctx.getWomc();
+  public <C> C createOne() {
+    if (count > 1) {
+      throw new IllegalArgumentException("Builder for class " + clazz + " has a count > 1");
+    }
+
+    BeanDataConfig beanDataConfig = womc.findBeanDataConfig(clazz);
+    return initiate(clazz, beanDataConfig);
   }
 
-  Class<C> getClazz() {
-    return clazz;
+  public <C> Collection<C> create() {
+    var result = new ArrayList<C>();
+
+    BeanDataConfig beanDataConfig = womc.findBeanDataConfig(clazz);
+    for (int i = 0; i < count; i++) {
+      result.add(initiate(clazz, beanDataConfig));
+    }
+
+    return result;
   }
 
-  Long getCount() {
-    return count;
+  private <C> C initiate(Class<?> beanClass, BeanDataConfig configForBeanClass) {
+    Constructor<?>[] declaredConstructors = beanClass.getDeclaredConstructors();
+
+    try {
+      C result = (C) declaredConstructors[0].newInstance();
+      fill(result, configForBeanClass);
+      return result;
+    } catch (InstantiationException e) {
+      throw new RuntimeException(e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  boolean isInitiateViaConstructor() {
-    return initiateViaConstructor;
+  private void fill(Object someBean, BeanDataConfig beanDataConfig) {
+
+    // use reflection to fill the bean
+    Field[] declaredFields = someBean.getClass().getDeclaredFields();
+    for (Field field : declaredFields) {
+      field.setAccessible(true);
+      try {
+        var value = provider(field, beanDataConfig).generate(null);
+        field.set(someBean, value);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
-  BeanDataConfig getBeanDataConfig() {
-    return beanDataConfig;
+  private IFieldDataProvider<?> provider(Field fieldToFill, BeanDataConfig beanDataConfig) {
+
+    if(beanDataConfig == null){
+      return providerStore.getProvider(fieldToFill.getType());
+    }
+
+    FieldConfig fieldConfig = beanDataConfig.getFieldConfigs().stream().filter(fc -> fc.field().equals(fieldToFill)).findFirst().orElse(null);
+    if (fieldConfig != null) {
+      return fieldConfig.provider();
+    }
+
+    return providerStore.getProvider(fieldToFill.getType());
   }
 
-  public BeanDataConfigBuilder configure() {
-    return BeanDataConfigBuilder.beanDataConfig(this);
-  }
 }
