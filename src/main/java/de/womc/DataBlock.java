@@ -1,4 +1,4 @@
-package de.ludwig.womc;
+package de.womc;
 
 import java.util.function.BiFunction;
 

@@ -1,4 +1,4 @@
-package de.ludwig.womc;
+package de.womc;
 
 public abstract class RangeValueStore<V extends Number> extends ValueStore<V>
 {
