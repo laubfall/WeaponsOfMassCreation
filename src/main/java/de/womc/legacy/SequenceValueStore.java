@@ -1,4 +1,4 @@
-package de.womc;
+package de.womc.legacy;
 
 public abstract class SequenceValueStore<V> extends ValueStore<V>
 {

@@ -1,4 +1,4 @@
-package de.womc;
+package de.womc.legacy;
 
 public class LongRangeValueStore extends RangeValueStore<Long>
 {

@@ -1,4 +1,4 @@
-package de.womc;
+package de.womc.legacy;
 
 import java.util.function.BiFunction;
 
