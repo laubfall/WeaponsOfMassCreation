@@ -1,4 +1,4 @@
-package com.dpdhl.vls.ebay.txgroup.dat;
+package de.ludwig.womc;
 
 /**
  * DataBlock <-> ValueStoreRepository

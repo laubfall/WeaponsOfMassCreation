@@ -1,4 +1,4 @@
-package de.ludwig;
+package de.ludwig.womc;
 
 import org.junit.Test;
 
