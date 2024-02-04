@@ -4,11 +4,10 @@ import de.womc.data.configurator.BeanDataConfig;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class Womc {
 
-  private List<BeanDataConfig> rootBeanDataConfigs = new ArrayList<>();
+  private final List<BeanDataConfig> rootBeanDataConfigs = new ArrayList<>();
 
   private Womc() {
   }
