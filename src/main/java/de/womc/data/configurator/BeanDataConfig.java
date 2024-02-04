@@ -1,7 +1,9 @@
 package de.womc.data.configurator;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
-public record BeanDataConfig(Class<?> bean, Collection<FieldConfig> fieldConfigs) {
+public class BeanDataConfig {
 
+  public Collection<FieldConfig> fieldConfigs = new ArrayList<>();
 }
